@@ -123,8 +123,8 @@ function loadImageFromSrc(src: string, fileName?: string, persist = true) {
 
     if (persist) {
       try {
-        localStorage.setItem("maskEditor_imageSrc", src);
-        localStorage.setItem("maskEditor_fileName", fileName ?? "image");
+        localStorage.setItem(storageKey("imageSrc"), src);
+        localStorage.setItem(storageKey("fileName"), fileName ?? "image");
       } catch {
         // Storage quota exceeded — skip persistence
       }
@@ -388,6 +388,14 @@ resizeObserver.observe(canvasWrapper);
 // =============================================================================
 // MCP App lifecycle
 // =============================================================================
+let currentSessionId: string | null = null;
+
+function storageKey(suffix: string): string {
+  return currentSessionId
+    ? `maskEditor_${suffix}_${currentSessionId}`
+    : `maskEditor_${suffix}`;
+}
+
 const app = new App({ name: "Mask Editor", version: "1.0.0" });
 
 function handleHostContextChanged(ctx: McpUiHostContext) {
@@ -408,10 +416,24 @@ app.onteardown = async () => {
 };
 
 app.ontoolinput = (params) => {
-  const args = params.arguments as { image?: string } | undefined;
+  const args = params.arguments as { image?: string; sessionId?: string } | undefined;
+  if (args?.sessionId) {
+    currentSessionId = args.sessionId;
+  }
   if (args?.image) {
     loadImageFromSrc(args.image, "provided-image");
     setStatus("Image received from host");
+  } else {
+    // No image from tool — restore from session (or global) storage
+    try {
+      const savedSrc = localStorage.getItem(storageKey("imageSrc"));
+      const savedName = localStorage.getItem(storageKey("fileName")) ?? "image";
+      if (savedSrc) {
+        loadImageFromSrc(savedSrc, savedName, false);
+      }
+    } catch {
+      // Ignore storage errors
+    }
   }
 };
 
@@ -436,14 +458,4 @@ app.connect().then(() => {
   const ctx = app.getHostContext();
   if (ctx) handleHostContextChanged(ctx);
 
-  // Restore last image from localStorage if no image was provided via tool input
-  try {
-    const savedSrc = localStorage.getItem("maskEditor_imageSrc");
-    const savedName = localStorage.getItem("maskEditor_fileName") ?? "image";
-    if (savedSrc && !loadedImage) {
-      loadImageFromSrc(savedSrc, savedName, false);
-    }
-  } catch {
-    // Ignore storage errors
-  }
 });

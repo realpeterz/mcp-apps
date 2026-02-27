@@ -41,6 +41,11 @@ export function createServer(): McpServer {
           .describe(
             "Optional base64 data URL of an image to load into the editor",
           ),
+        sessionId: z
+          .string()
+          .describe(
+            "A UUID identifying this conversation. Generate one with crypto.randomUUID() on the first call and reuse the same value for all subsequent calls within this conversation.",
+          ),
       }),
       outputSchema: z.object({
         status: z.string(),
