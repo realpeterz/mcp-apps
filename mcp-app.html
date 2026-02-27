@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mask Editor</title>
+  </head>
+  <body>
+    <div class="main">
+      <div class="toolbar">
+        <label class="upload-btn" id="upload-btn">
+          Upload Image
+          <input type="file" id="file-input" accept="image/*" hidden />
+        </label>
+        <div class="brush-controls">
+          <label>Brush: <input type="range" id="brush-size" min="5" max="100" value="30" /></label>
+          <span id="brush-size-label">30px</span>
+        </div>
+        <button id="clear-mask-btn" disabled>Clear Mask</button>
+        <button id="confirm-btn" class="confirm-btn" disabled>Confirm Mask</button>
+      </div>
+      <div class="canvas-wrapper" id="canvas-wrapper">
+        <div class="drop-zone" id="drop-zone">
+          <p>Drop an image here or click Upload Image</p>
+        </div>
+        <canvas id="image-canvas"></canvas>
+        <canvas id="mask-canvas"></canvas>
+      </div>
+      <div class="status-bar" id="status-bar"></div>
+    </div>
+    <script type="module" src="./src/mcp-app.ts"></script>
+  </body>
+</html>

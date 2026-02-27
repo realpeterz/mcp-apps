@@ -1,0 +1,148 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--color-background-secondary);
+  border-bottom: 1px solid var(--color-border-primary);
+  flex-shrink: 0;
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.upload-btn:hover {
+  background: var(--color-accent-hover);
+}
+
+.brush-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.brush-controls input[type="range"] {
+  width: 100px;
+  accent-color: var(--color-accent);
+}
+
+#brush-size-label {
+  min-width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+button {
+  padding: 6px 12px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: opacity 0.15s;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button:not(:disabled):hover {
+  opacity: 0.8;
+}
+
+.confirm-btn {
+  background: var(--color-success);
+  color: white;
+  border-color: var(--color-success);
+  margin-left: auto;
+}
+
+/* Canvas area */
+.canvas-wrapper {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: var(--color-background-secondary);
+}
+
+.drop-zone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border: 3px dashed var(--color-border-primary);
+  margin: 12px;
+  border-radius: var(--border-radius-lg);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.drop-zone.drag-over {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.drop-zone.hidden {
+  display: none;
+}
+
+.drop-zone p {
+  font-size: 1rem;
+  opacity: 0.6;
+}
+
+#image-canvas,
+#mask-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#image-canvas {
+  z-index: 1;
+}
+
+#mask-canvas {
+  z-index: 2;
+  cursor: crosshair;
+}
+
+/* Status bar */
+.status-bar {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  background: var(--color-background-secondary);
+  border-top: 1px solid var(--color-border-primary);
+  min-height: 28px;
+  flex-shrink: 0;
+}
+
+.status-bar.success {
+  color: var(--color-success);
+}
+
+.status-bar.error {
+  color: var(--color-error);
+}
