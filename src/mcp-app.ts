@@ -35,6 +35,8 @@ let originalFileName = "image";
 let isDrawing = false;
 let brushSize = 30;
 let hasMaskContent = false;
+// Tracks the drawn image rect in display space so mask can be remapped on resize
+let currentImageRect = { offsetX: 0, offsetY: 0, drawW: 0, drawH: 0 };
 
 // =============================================================================
 // Status helpers
@@ -62,6 +64,13 @@ function resizeCanvases() {
   const offsetX = Math.round((wrapperW - drawW) / 2);
   const offsetY = Math.round((wrapperH - drawH) / 2);
 
+  // Snapshot the mask before resizing clears it, so we can remap it
+  let maskSnapshot: string | null = null;
+  const oldRect = { ...currentImageRect };
+  if (hasMaskContent && oldRect.drawW > 0) {
+    maskSnapshot = maskCanvas.toDataURL();
+  }
+
   for (const canvas of [imageCanvas, maskCanvas]) {
     canvas.width = wrapperW;
     canvas.height = wrapperH;
@@ -78,22 +87,48 @@ function resizeCanvases() {
   maskCtx.lineJoin = "round";
   maskCtx.strokeStyle = "rgba(255, 0, 0, 0.4)";
   maskCtx.lineWidth = brushSize;
+
+  // Update tracked rect
+  currentImageRect = { offsetX, offsetY, drawW, drawH };
+
+  // Remap mask from old image rect to new image rect
+  if (maskSnapshot) {
+    const img = new Image();
+    img.onload = () => {
+      maskCtx.drawImage(
+        img,
+        oldRect.offsetX, oldRect.offsetY, oldRect.drawW, oldRect.drawH,
+        offsetX, offsetY, drawW, drawH,
+      );
+    };
+    img.src = maskSnapshot;
+  }
 }
 
 // =============================================================================
 // Load image
 // =============================================================================
-function loadImageFromSrc(src: string, fileName?: string) {
+function loadImageFromSrc(src: string, fileName?: string, persist = true) {
   const img = new Image();
   img.onload = () => {
     loadedImage = img;
     if (fileName) originalFileName = fileName;
+    currentImageRect = { offsetX: 0, offsetY: 0, drawW: 0, drawH: 0 };
     dropZone.classList.add("hidden");
     clearMask();
     resizeCanvases();
     clearMaskBtn.disabled = false;
     confirmBtn.disabled = false;
     setStatus(`Image loaded: ${img.naturalWidth}x${img.naturalHeight}`);
+
+    if (persist) {
+      try {
+        localStorage.setItem("maskEditor_imageSrc", src);
+        localStorage.setItem("maskEditor_fileName", fileName ?? "image");
+      } catch {
+        // Storage quota exceeded — skip persistence
+      }
+    }
   };
   img.onerror = () => {
     setStatus("Failed to load image", "error");
@@ -400,4 +435,15 @@ app.onhostcontextchanged = handleHostContextChanged;
 app.connect().then(() => {
   const ctx = app.getHostContext();
   if (ctx) handleHostContextChanged(ctx);
+
+  // Restore last image from localStorage if no image was provided via tool input
+  try {
+    const savedSrc = localStorage.getItem("maskEditor_imageSrc");
+    const savedName = localStorage.getItem("maskEditor_fileName") ?? "image";
+    if (savedSrc && !loadedImage) {
+      loadImageFromSrc(savedSrc, savedName, false);
+    }
+  } catch {
+    // Ignore storage errors
+  }
 });
