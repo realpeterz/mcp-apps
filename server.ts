@@ -10,6 +10,7 @@ import type {
 } from "@modelcontextprotocol/sdk/types.js";
 import fs from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp";
 import { z } from "zod";
 
 const DIST_DIR = import.meta.filename.endsWith(".ts")
@@ -127,6 +128,65 @@ export function createServer(): McpServer {
       return {
         content: [{ type: "text", text: `Mask saved to ${filePath}` }],
         structuredContent: result,
+      };
+    },
+  );
+
+  // Server-only tool: applies a mask to an image, keeping masked areas and making the rest transparent
+  server.registerTool(
+    "apply-mask",
+    {
+      description:
+        "Applies a mask to an image. White areas of the mask are kept from the original image; black areas become transparent. Returns a PNG data URL.",
+      inputSchema: z.object({
+        image: z
+          .string()
+          .describe("The source image as a base64 string (with or without data URL prefix)"),
+        mask: z
+          .string()
+          .describe("The mask image as a base64 string (with or without data URL prefix). White = keep, black = transparent."),
+      }),
+    },
+    async ({ image, mask }): Promise<CallToolResult> => {
+      const stripPrefix = (b64: string) =>
+        b64.replace(/^data:image\/\w+;base64,/, "");
+
+      const imageBuffer = Buffer.from(stripPrefix(image), "base64");
+      const maskBuffer = Buffer.from(stripPrefix(mask), "base64");
+
+      // Get image dimensions
+      const imageMeta = await sharp(imageBuffer).metadata();
+      const { width, height } = imageMeta;
+
+      // Decode image as raw RGBA
+      const { data: imageData } = await sharp(imageBuffer)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+
+      // Decode mask as raw grayscale, resized to match the image
+      const { data: maskData } = await sharp(maskBuffer)
+        .resize(width, height)
+        .grayscale()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+
+      // Set each pixel's alpha to the corresponding mask grayscale value
+      for (let i = 0; i < (width ?? 0) * (height ?? 0); i++) {
+        imageData[i * 4 + 3] = maskData[i];
+      }
+
+      const resultBuffer = await sharp(Buffer.from(imageData), {
+        raw: { width: width!, height: height!, channels: 4 },
+      })
+        .png()
+        .toBuffer();
+
+      const resultBase64 = `data:image/png;base64,${resultBuffer.toString("base64")}`;
+
+      return {
+        content: [{ type: "text", text: resultBase64 }],
+        structuredContent: { result: resultBase64 },
       };
     },
   );

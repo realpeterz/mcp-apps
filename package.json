@@ -14,11 +14,13 @@
     "@modelcontextprotocol/sdk": "^1.24.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "sharp": "^0.34.5",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/sharp": "^0.31.1",
     "concurrently": "^9.0.0",
     "cross-env": "^7.0.3",
     "tsx": "^4.19.0",
