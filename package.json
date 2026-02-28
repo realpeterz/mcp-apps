@@ -10,12 +10,12 @@
     "dev": "cross-env NODE_ENV=development concurrently \"npm run watch\" \"npm run serve\""
   },
   "dependencies": {
-    "@modelcontextprotocol/ext-apps": "^1.0.0",
-    "@modelcontextprotocol/sdk": "^1.24.0",
+    "@modelcontextprotocol/ext-apps": "^1.1.2",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "sharp": "^0.34.5",
-    "zod": "^4.1.13"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

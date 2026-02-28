@@ -144,7 +144,7 @@ export function createServer(): McpServer {
           .describe("The source image as a base64 string (with or without data URL prefix)"),
         mask: z
           .string()
-          .describe("The mask image as a base64 string (with or without data URL prefix). White = keep, black = transparent."),
+          .describe("The mask image as a base64 string (with or without data URL prefix). White = keep, black = transparent.")
       }),
     },
     async ({ image, mask }): Promise<CallToolResult> => {
